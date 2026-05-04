@@ -1,0 +1,122 @@
+Problem: Implement topological sorting using in-degree array and queue (Kahnâ€™s Algorithm).
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node for adjacency list
+struct Node {
+    int vertex;
+    struct Node* next;
+};
+
+// Graph structure
+struct Graph {
+    int n;
+    struct Node** adjList;
+};
+
+// Create node
+struct Node* createNode(int v) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Create graph
+struct Graph* createGraph(int n) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->n = n;
+
+    graph->adjList = (struct Node**)malloc(n * sizeof(struct Node*));
+
+    for (int i = 0; i < n; i++)
+        graph->adjList[i] = NULL;
+
+    return graph;
+}
+
+// Add edge (directed)
+void addEdge(struct Graph* graph, int u, int v) {
+    struct Node* newNode = createNode(v);
+    newNode->next = graph->adjList[u];
+    graph->adjList[u] = newNode;
+}
+
+// Queue
+int queue[100], front = 0, rear = 0;
+
+void enqueue(int x) {
+    queue[rear++] = x;
+}
+
+int dequeue() {
+    return queue[front++];
+}
+
+int isEmpty() {
+    return front == rear;
+}
+
+// Topological sort using Kahn's Algorithm
+void topoSort(struct Graph* graph) {
+    int indegree[100] = {0};
+
+    // Step 1: Compute indegree
+    for (int i = 0; i < graph->n; i++) {
+        struct Node* temp = graph->adjList[i];
+        while (temp) {
+            indegree[temp->vertex]++;
+            temp = temp->next;
+        }
+    }
+
+    // Step 2: Enqueue nodes with indegree 0
+    for (int i = 0; i < graph->n; i++) {
+        if (indegree[i] == 0) {
+            enqueue(i);
+        }
+    }
+
+    int count = 0;
+
+    // Step 3: Process queue
+    while (!isEmpty()) {
+        int v = dequeue();
+        printf("%d ", v);
+        count++;
+
+        struct Node* temp = graph->adjList[v];
+        while (temp) {
+            indegree[temp->vertex]--;
+
+            if (indegree[temp->vertex] == 0) {
+                enqueue(temp->vertex);
+            }
+            temp = temp->next;
+        }
+    }
+
+    // Step 4: Cycle check
+    if (count != graph->n) {
+        printf("\nCycle exists, topological sort not possible");
+    }
+}
+
+int main() {
+    int n, m;
+    scanf("%d", &n);   // vertices
+    scanf("%d", &m);   // edges
+
+    struct Graph* graph = createGraph(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        addEdge(graph, u, v);
+    }
+
+    topoSort(graph);
+
+    return 0;
+}
