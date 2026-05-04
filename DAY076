@@ -1,0 +1,113 @@
+Problem Statement
+Using DFS or BFS, count number of connected components.
+
+Input Format
+n m
+edges
+
+Output Format
+Number of connected components.
+
+Sample Input
+6 3
+1 2
+2 3
+5 6
+
+Sample Output
+3
+
+Explanation
+Components: {1,2,3}, {4}, {5,6}
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node for adjacency list
+struct Node {
+    int vertex;
+    struct Node* next;
+};
+
+// Graph structure
+struct Graph {
+    int n;
+    struct Node** adjList;
+};
+
+// Create node
+struct Node* createNode(int v) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Create graph
+struct Graph* createGraph(int n) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->n = n;
+
+    graph->adjList = (struct Node**)malloc((n + 1) * sizeof(struct Node*));
+
+    for (int i = 1; i <= n; i++)
+        graph->adjList[i] = NULL;
+
+    return graph;
+}
+
+// Add edge (undirected)
+void addEdge(struct Graph* graph, int u, int v) {
+    struct Node* newNode = createNode(v);
+    newNode->next = graph->adjList[u];
+    graph->adjList[u] = newNode;
+
+    newNode = createNode(u);
+    newNode->next = graph->adjList[v];
+    graph->adjList[v] = newNode;
+}
+
+// DFS
+void dfs(struct Graph* graph, int v, int visited[]) {
+    visited[v] = 1;
+
+    struct Node* temp = graph->adjList[v];
+    while (temp) {
+        if (!visited[temp->vertex]) {
+            dfs(graph, temp->vertex, visited);
+        }
+        temp = temp->next;
+    }
+}
+
+int main() {
+    int n, m;
+    scanf("%d %d", &n, &m);
+
+    struct Graph* graph = createGraph(n);
+
+    // Input edges
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        addEdge(graph, u, v);
+    }
+
+    int visited[n + 1];
+    for (int i = 1; i <= n; i++)
+        visited[i] = 0;
+
+    int components = 0;
+
+    // Count components
+    for (int i = 1; i <= n; i++) {
+        if (!visited[i]) {
+            dfs(graph, i, visited);
+            components++;
+        }
+    }
+
+    printf("%d", components);
+
+    return 0;
+}
