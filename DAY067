@@ -1,0 +1,102 @@
+Problem: Print topological ordering of a Directed Acyclic Graph (DAG) using DFS.
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node for adjacency list
+struct Node {
+    int vertex;
+    struct Node* next;
+};
+
+// Graph structure
+struct Graph {
+    int n;
+    struct Node** adjList;
+};
+
+// Create node
+struct Node* createNode(int v) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->vertex = v;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Create graph
+struct Graph* createGraph(int n) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->n = n;
+
+    graph->adjList = (struct Node**)malloc(n * sizeof(struct Node*));
+
+    for (int i = 0; i < n; i++)
+        graph->adjList[i] = NULL;
+
+    return graph;
+}
+
+// Add edge (directed)
+void addEdge(struct Graph* graph, int u, int v) {
+    struct Node* newNode = createNode(v);
+    newNode->next = graph->adjList[u];
+    graph->adjList[u] = newNode;
+}
+
+// Stack for topo sort
+int stack[100];
+int top = -1;
+
+void push(int x) {
+    stack[++top] = x;
+}
+
+// DFS
+void dfs(struct Graph* graph, int v, int visited[]) {
+    visited[v] = 1;
+
+    struct Node* temp = graph->adjList[v];
+    while (temp) {
+        if (!visited[temp->vertex]) {
+            dfs(graph, temp->vertex, visited);
+        }
+        temp = temp->next;
+    }
+
+    // Push after exploring all neighbors
+    push(v);
+}
+
+// Topological sort
+void topoSort(struct Graph* graph) {
+    int visited[100] = {0};
+
+    for (int i = 0; i < graph->n; i++) {
+        if (!visited[i]) {
+            dfs(graph, i, visited);
+        }
+    }
+
+    // Print stack (reverse finishing order)
+    while (top != -1) {
+        printf("%d ", stack[top--]);
+    }
+}
+
+int main() {
+    int n, m;
+    scanf("%d", &n);   // vertices
+    scanf("%d", &m);   // edges
+
+    struct Graph* graph = createGraph(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        addEdge(graph, u, v);
+    }
+
+    topoSort(graph);
+
+    return 0;
+}
